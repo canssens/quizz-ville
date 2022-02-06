@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en" class="h-100">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content=" ">
+    <title>Quizz-ville</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+
+    <meta name="theme-color" content="#7952b3">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+   integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+   crossorigin=""/>
+
+   <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+ integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+ crossorigin=""></script>
+
+    <style>
+      
+    html, body {
+        margin: 0;
+        height: 100%;
+        min-height: 100%;
+        }
+
+    body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    header,
+    footer {
+        flex: none;
+    }
+
+    main {
+        overflow-y: scroll;
+        -webkit-overflow-scrolling: touch;
+        flex: auto;
+    }
+
+    .text-large {
+    font-size: 150%;
+    }
+
+
+    .leaflet-popup-content-wrapper {
+        font-size: 150%;
+    }
+    .leaflet-popup-content-wrapper .leaflet-popup-content {
+        font-size: 150%;
+    }
+
+
+    #mapid { height: 100%; }
+
+    </style>
+
+    
+
+  </head>
+  <body class="d-flex flex-column h-100" onload="loadMap()">
+    
+<!-- Begin page content -->
+<main class="">
+<h2>Villeneuve d'Ascq</h2>
+    
+
+    <div id="mapid"></div>
+
+
+
+    
+
+  </div>
+</main>
+
+<footer class="footer mt-auto py-8 bg-light">
+  <div class="">
+
+    <table width="100%">
+        <tr><th><span class="text-large">Trouvez</span></th><th><span class="text-large">Succès</span></th></tr>
+        <tr><td id="lieu"  class="text-large" >XXX</td><td id="score"  class="text-large">0%</td></tr>
+    </table>
+  </div>
+</footer>
+
+
+<script>
+
+var POI = [
+  {name:"Ferme d'en haut",lat:50.638669,lon: 3.130518}, 
+  {name:"Stadium",lat:50.631149,lon: 3.137460}, 
+  {name:"LAM",lat:50.6374375,lon:3.150220},
+  {name:"Pavillon de chasse",lat:50.638279 ,lon:3.160336},
+  {name:"Chateau de Flers",lat: 50.635790,lon: 3.132808},
+  {name:"Stade Pierre Mauroy",lat: 50.611866 ,lon:3.130618},
+  {name:"Ferme du Héron",lat: 50.639009 ,lon:3.178468},
+  {name:"Musée du Terroir",lat: 50.627852, lon:3.152035},
+  {name:"Lilliad Learning center",lat: 50.6093067,lon:3.142127},
+  {name:"La rose des vents",lat: 50.620732, lon:3.131144},
+  {name:"Les moulins",lat: 50.637768, lon:3.145014},
+  {name:"Musée Asnapio",lat: 50.636399, lon: 3.156440}
+];
+
+var index=0;
+var essais=0;
+var markers= [];
+var markersSelection= [];
+var mymap;
+
+function markerOK(e)
+{
+  var popup = L.popup()
+  .setLatLng([e.latlng.lat, e.latlng.lng]).setContent("Bravo !").openOn(mymap);
+
+  //purge markers on map
+  for(var i = 0; i < markers.length; i++){
+    mymap.removeLayer(markers[i]);
+  }
+
+  index++;
+  updateScore();
+  loadMarker();
+}
+
+function markerKO(e)
+{
+  essais++;
+  updateScore();
+  console.log(e);
+  e.target.setIcon(L.icon({
+        iconUrl: 'error.png',
+        iconSize: [50, 50]
+      }));
+}
+
+function updateScore()
+{
+  score = Math.floor( 100* index / (index+essais));
+  document.getElementById('score').innerHTML = score.toString() +"%";
+
+}
+
+function randomInteger(max) {
+  return Math.floor(Math.random() * (max )) ;
+}
+
+function loadMarker() {
+
+markers = [];
+markersSelection= [];
+if(index<POI.length)
+{
+   //load the target
+   document.getElementById('lieu').innerHTML = POI[index].name;
+   var marker = L.marker([POI[index].lat,POI[index].lon]).addTo(mymap).on('click', markerOK);
+   //marker.bindPopup("<b>Hello world!</b><br>I am a popup.")
+   markers.push(marker);
+   markersSelection.push(index);
+
+   //load FAKE
+   y = 0;
+   
+
+   while(markers.length<5)
+   {
+        i = randomInteger(POI.length);
+
+      if(markersSelection.includes(i) == false)
+      {
+        var marker = L.marker([POI[i].lat,POI[i].lon]).addTo(mymap).on('click', markerKO);
+        //marker.bindPopup("<b>Hello world!</b><br>I am a popup.")
+        markers.push(marker);
+        markersSelection.push(i);
+      }
+
+     
+      
+   }
+
+
+}
+else
+{
+  document.getElementById('lieu').innerHTML = "FINI !";
+
+  var popup = L.popup()
+  .setLatLng([50.6333825,3.1337214])
+  .setContent("Terminé. Bravo !")
+  .openOn(mymap);
+}
+}
+
+
+
+function loadMap() {
+     mymap = L.map('mapid').setView([50.6333825,3.1337214], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+      }).addTo(mymap);
+
+
+      loadMarker();
+    
+
+
+}
+</script>
+
+    
+  </body>
+</html>
